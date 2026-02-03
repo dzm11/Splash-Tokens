@@ -1,446 +1,200 @@
-# Design System Token Architecture
+# Design System Token Documentation: Shade & Intensity
 
-Welcome. I am the Lead Design System Engineer, and this README is the single source of truth for our design tokens.
+This documentation defines the architecture and naming conventions for the design system tokens. It ensures a seamless handoff between design and engineering by establishing a unified language based on visual intensity and semantic intent.
 
-This system uses a **Shade & Intensity-Based Naming** convention. I prioritize semantic meaning (what it does) and intensity (how strong it looks) over raw values.
+## 📌 Table of Contents
 
----
-
-## Core Philosophy
-
-1. **No Raw Values**
-   I never reference hex codes or pixels directly in UI components.
-
-2. **Two Parallel Naming Layers**
-   Every token exists in two forms:
-
-* a Designer-facing name (English, Title Case, human-readable)
-* a Developer-facing CSS variable (kebab-case, lowercase, double-dash prefix)
-
-3. **Themable by Design**
-   Intensity is relative. "Strong" means darker in Light Mode and lighter in Dark Mode.
+* [1. Architecture Overview](https://www.google.com/search?q=%231-architecture-overview)
+* [2. Naming Philosophy](https://www.google.com/search?q=%232-naming-philosophy)
+* [3. Token Hierarchy](https://www.google.com/search?q=%233-token-hierarchy)
+* [4. Designer & Developer Mapping](https://www.google.com/search?q=%234-designer--developer-mapping)
+* [5. Primitive Layer](https://www.google.com/search?q=%235-primitive-layer)
+* [6. Semantic Layer](https://www.google.com/search?q=%236-semantic-layer)
+* [7. Focus & Accessibility System](https://www.google.com/search?q=%237-focus--accessibility-system)
+* [8. Data Visualization](https://www.google.com/search?q=%238-data-visualization)
+* [9. Theming & Scalability](https://www.google.com/search?q=%239-theming--scalability)
+* [10. Token Catalog Examples](https://www.google.com/search?q=%2310-token-catalog-examples)
+* [11. Best Practices](https://www.google.com/search?q=%2311-best-practices)
+* [12. Implementation Guide](https://www.google.com/search?q=%2312-implementation-guide)
 
 ---
 
-## Token Hierarchy
+## 1. Architecture Overview
 
-I organize tokens into three layers. Data flows strictly from left to right.
+The system utilizes a **Shade & Intensity-Based** approach. Tokens are named according to their functional role and their relative visual weight (intensity) rather than static color values (e.g., "Blue 500"). This allows the system to remain theme-agnostic and scalable.
+
+## 2. Naming Philosophy
+
+By using intensity-based naming (Weakest to Strongest), the system achieves:
+
+* **Theme Scalability:** A "Background Weak" token remains conceptually consistent whether the interface is in Light or Dark mode.
+* **Predictability:** Designers and developers can anticipate the visual hierarchy based on the suffix.
+* **Semantic Clarity:** Tokens describe the "why" and "how much" rather than the "what color."
+
+## 3. Token Hierarchy
+
+Data flows through a three-tier architecture to ensure maintainability:
+
+```ascii
+[ Layer 1: Primitives ]      [ Layer 2: Semantic ]        [ Layer 3: Components ]
+   Raw Global Values            Context & Intent               Implementation
++---------------------+      +---------------------+      +---------------------+
+|                     |      |                     |      |                     |
+|  brand-500 (#3B82F6)| ---> |  Background Primary | ---> |  Button (Primary)   |
+|  neutral-100        |      |                     |      |  Card               |
+|  space-100 (8px)    |      |  Spacing Layout     |      |  Input Field        |
+|                     |      |                     |      |                     |
++---------------------+      +---------------------+      +---------------------+
 
 ```
-[ Layer 1: Primitives ]      [ Layer 2: Semantic ]           [ Layer 3: Components ]
-   Raw, Stable Values           Context and Intent              Implementation Use
-+---------------------+      +--------------------------+     +----------------------+
-| Neutral 100         | ---> | Background Surface Weak  | --> | Card                  |
-| --neutral-100       |      | --color-background-      |     | Sidebar               |
-|                     |      | surface-weak             |     |                       |
-| Brand 600           | ---> | Interactive Primary      | --> | Primary Button        |
-| --brand-600         |      | --color-interactive-     |     | CTA Links             |
-|                     |      | primary                  |     |                       |
-| Space 100 (8px)     | ---> | Focus Border Width       | --> | Focus ring styling    |
-| --space100          |      | --border-width-focus     |     |                       |
-+---------------------+      +--------------------------+     +----------------------+
-           ^                            ^                              ^
-    (Stable and Global)         (Theme Dependent)                (Composition)
-```
+
+## 4. Designer & Developer Mapping
+
+The system enforces two parallel naming layers. Every token must have both a human-readable name for designers and a technical variable for developers.
+
+* **Designer-facing:** English, Title Case, no technical prefixes (e.g., `Text Strongest`).
+* **Developer-facing:** Kebab-case CSS variables with a double-dash prefix (e.g., `--color-text-strongest`).
+
+**Mapping Rule:** To derive the Designer Name from the CSS variable, remove the `--category-` prefix, replace hyphens with spaces, and apply Title Case.
 
 ---
 
-## Designer names vs CSS variable snippets
+## 5. Primitive Layer
 
-Every token exists in two parallel forms.
-
-* **Designer Name**
-  English, Title Case, human-readable, no technical prefixes
-
-* **CSS Variable**
-  kebab-case, lowercase, double-dash prefix
-
-I always show examples as a pair.
-
-Examples:
-
-* **Background Weak**: `--color-background-weak`
-* **Text Strongest**: `--color-text-strongest`
-* **Border Danger Weak**: `--color-border-danger-weak`
-* **Shadow Focus Border**: `--shadow-focus-border`
-
----
-
-## Mapping Rules
-
-### Developer to Designer
-
-I derive the Designer Name from the CSS variable as follows:
-
-1. Remove the `--` prefix
-2. Split by `-`
-3. Convert the category prefix into a human-readable category
-4. Convert remaining parts to Title Case
-5. Keep numbers unchanged
-
-Category mapping:
-
-* `color-background` -> Background
-* `color-text` -> Text
-* `color-border` -> Border
-* `color-icon` -> Icon
-* `color-interactive` -> Interactive
-* `color-data` -> Data
-* `shadow` -> Shadow
-* `radius` -> Radius
-* `space` -> Space
-* `border-width` -> Border Width
-
-Examples:
-
-* **Background Surface Weakest**: `--color-background-surface-weakest`
-* **Interactive Primary Hover Weakest**: `--color-interactive-primary-hover-weakest`
-* **Border Width 2**: `--border-width-2`
-
-### Designer to Developer
-
-I derive the CSS variable from the Designer Name like this:
-
-1. Map the first word(s) back to the category prefix
-2. Lowercase the rest and join with hyphens
-3. Never add `-default`
-4. The base token has no intensity suffix
-
-Examples:
-
-* **Background Primary**: `--color-background-primary`
-* **Text Muted**: `--color-text-muted`
-* **Interactive Primary Pressed Strong**: `--color-interactive-primary-pressed-strong`
-
----
-
-## Shade & Intensity-Based Naming
-
-### Intensity Scale
-
-I support up to seven intensity steps:
-
-1. weakest
-2. weaker
-3. weak
-4. base (no suffix)
-5. strong
-6. stronger
-7. strongest
-
-There is no `-default` suffix.
-
-Examples:
-
-* **Background Surface Weak**: `--color-background-surface-weak`
-* **Background Surface**: `--color-background-surface`
-* **Text Strongest**: `--color-text-strongest`
-
-### Shortened Scales
-
-Not every role needs all seven steps. I allow shortened scales when:
-
-* the role is rarely used
-* additional steps are visually indistinguishable
-* extra tokens would not be consumed by components
-
-Consistency rules:
-
-* the base token always exists
-* I usually add only `-weakest` for backgrounds or `-strong` for contrast
-* similar roles should follow the same pattern
-
-Example:
-
-* **Background Warning**: `--color-background-warning`
-* **Background Warning Weakest**: `--color-background-warning-weakest`
-
----
-
-## Layer 1: Primitives
-
-Primitives are stable and value-oriented. They never express UI meaning.
+Primitives are stable, global values. They are not UI-contextual and should never be used directly in component styles.
 
 ### Color Primitives
 
-I use numeric scales from 50 to 950.
+Standard palettes follow the 50–950 scale:
 
-Recommended naming:
-
-* Neutral: `--neutral-50` … `--neutral-950`
-* Brand: `--brand-50` … `--brand-950`
-* Tailwind palettes: `--blue-50` … `--blue-950`, `--emerald-50` … `--emerald-950`
-
-Examples:
-
-* **Neutral 50**: `--neutral-50`
-* **Neutral 900**: `--neutral-900`
-* **Brand 600**: `--brand-600`
-* **Blue 500**: `--blue-500`
-* **Emerald 600**: `--emerald-600`
-* **Red 600**: `--red-600`
-* **Amber 500**: `--amber-500`
-
-Rule:
-
-* semantic tokens never contain raw values
+* **Neutral:** `neutral-50` to `neutral-950`
+* **Brand:** `brand-50` to `brand-950`
+* **Tailwind Palettes:** `blue-50`, `emerald-50`, `rose-50`, etc.
 
 ### Radius Primitives
 
-I use compact scale-based naming:
+Naming follows the format `radius[px]`:
 
-* `--radius01`
-* `--radius04`
-* `--radius08`
-* `--radius12`
-
-Examples:
-
-* **Radius 01**: `--radius01`
-* **Radius 04**: `--radius04`
-* **Radius 08**: `--radius08`
-
-#### Focus Radius
-
-For every radius, I define a focus variant that is +2px.
-
-Examples:
-
-* **Radius 04 Focus**: `--radius04-focus`
-* **Radius 08 Focus**: `--radius08-focus`
-
-I use focus radius whenever a focus ring sits outside the element.
+* **Scale:** `radius04` (4px), `radius08` (8px), `radius12` (12px).
+* **Focus Radius:** Every radius has a corresponding `*-focus` token (e.g., `radius04-focus`) calculated as `Base Radius + 2px`.
 
 ### Spacing Primitives
 
-Naming:
+A linear scale where `100` units equals `8px` (the base unit):
 
-* `--space0`, `--space100`, … `--space1000`
-
-Rule:
-
-* Space 100 equals 8px
-* px = (token / 100) * 8
-
-Examples:
-
-* **Space 0**: `--space0`
-* **Space 100**: `--space100` (8px)
-* **Space 200**: `--space200` (16px)
-* **Space 300**: `--space300` (24px)
-* **Space 600**: `--space600` (48px)
-* **Space 1000**: `--space1000` (80px)
+* `space050` (4px), `space100` (8px), `space200` (16px), `space400` (32px).
 
 ### Border Width Primitives
 
-Examples:
-
-* **Border Width 1**: `--border-width-1`
-* **Border Width 2**: `--border-width-2`
+* `Width 1` (`--border-width-1`): 1px for standard borders.
+* `Width 2` (`--border-width-2`): 2px for focus and active states.
 
 ---
 
-## Layer 2: Semantic Tokens
+## 6. Semantic Layer
 
-Semantic tokens express UI intent and intensity. Components only use this layer.
+Semantic tokens map primitives to specific UI roles and intensities.
 
 ### Naming Structure
 
-Developer structure:
-`--<category>-<role>-(optional variant)-(optional state)-(optional intensity)`
+`--<category>-<role>-<optional-variant>-<optional-state>-<optional-intensity>`
 
-Required categories:
+### Intensity Scale
 
-* `--color-background-*`
-* `--color-text-*`
-* `--color-border-*`
-* `--color-icon-*`
+The system supports up to 7 steps of intensity:
+`weakest` → `weaker` → `weak` → **(base)** → `strong` → `stronger` → `strongest`.
 
-Recommended:
+**Constraint:** The base token has no suffix (e.g., `--color-background`, not `--color-background-default`).
 
-* `--color-interactive-*` for clickable elements
+### Shortened Scales
 
-Utility:
+Not all roles require 7 steps. Status-based roles (Warning, Danger, Success) typically use a reduced set:
 
-* `--shadow-*` for structured shadows
-
----
-
-## Semantic Roles and Examples
-
-### Background
-
-* **Background Primary**: `--color-background-primary`
-* **Background Secondary**: `--color-background-secondary`
-* **Background Surface**: `--color-background-surface`
-* **Background Warning**: `--color-background-warning`
-* **Background Success**: `--color-background-success`
-* **Background Danger**: `--color-background-danger`
-
-### Text
-
-* **Text Default**: `--color-text-default`
-* **Text Muted**: `--color-text-muted`
-* **Text Inverse**: `--color-text-inverse`
-* **Text Link**: `--color-text-link`
-
-### Border
-
-* **Border Default**: `--color-border-default`
-* **Border Subtle**: `--color-border-subtle`
-* **Border Strong**: `--color-border-strong`
-
-### Icon
-
-* **Icon Default**: `--color-icon-default`
-* **Icon Muted**: `--color-icon-muted`
-* **Icon Inverse**: `--color-icon-inverse`
+* `weakest`: Used for subtle background fills (e.g., Alerts).
+* `base`: Used for standard icons and solid button backgrounds.
+* `strong`: Used for text labels to ensure contrast.
 
 ---
 
-## Interaction States
+## 7. Focus & Accessibility System
 
-All states are supported:
-hover, active, pressed, selected, disabled, focus, visited.
+Focus states are managed via an outline-based approach to prevent layout shifts.
 
-State to intensity mapping:
+* **Focus Shadow:** `--shadow-focus-border` (typically a 2px spread box-shadow).
+* **Focus Color:** `--color-focus-border` defines the ring color.
+* **Focus Radius:** Components must switch to the `radius-*-focus` token when focused to ensure the ring sits outside the element without clipping.
 
-* hover -> `-hover-weakest`
-* active -> `-active-weak`
-* pressed -> `-pressed-strong`
-* selected -> `-selected-stronger`
-* disabled -> `-disabled-weaker`
-* visited -> `-visited-strong`
-* focus -> handled by focus tokens
+## 8. Data Visualization
 
-Example:
+Tokens for charts are derived from Tailwind primitives to ensure distinct categorical colors:
 
-* **Interactive Primary**: `--color-interactive-primary`
-* **Interactive Primary Hover Weakest**: `--color-interactive-primary-hover-weakest`
-* **Interactive Primary Active Weak**: `--color-interactive-primary-active-weak`
-* **Interactive Primary Pressed Strong**: `--color-interactive-primary-pressed-strong`
-* **Interactive Primary Selected Stronger**: `--color-interactive-primary-selected-stronger`
-* **Interactive Primary Disabled Weaker**: `--color-interactive-primary-disabled-weaker`
+* **Series:** `--color-data-1` through `--color-data-8`.
+* **States:** Includes `-hover` (increased intensity) and `-muted` (desaturated for unselected states).
 
 ---
 
-## Focus Tokens (Outline-Based)
+## 9. Theming & Scalability
 
-I handle focus with dedicated tokens.
+Semantic tokens enable theme switching by re-mapping to different primitives.
 
-Focus token set:
-
-* **Focus Border Shadow**: `--shadow-focus-border`
-* **Focus Border Color**: `--color-focus-border`
-* **Focus Border Width**: `--border-width-focus`
-* **Radius 04 Focus**: `--radius04-focus`
-
-I combine them to draw a visible focus outline without layout shifts.
+* **Theme Inversion:** In Dark Mode, `Background Weak` maps to a dark primitive (`neutral-900`), while in Light Mode, it maps to a light primitive (`neutral-50`).
+* **Compatibility:** New intensity steps can be added without breaking existing component implementations.
 
 ---
 
-## Data Visualization Tokens
+## 10. Token Catalog Examples
 
-Data tokens represent chart series, not UI hierarchy.
+### Primitive Examples
 
-### Categorical Series
+| Designer Name | CSS Variable | Value |
+| --- | --- | --- |
+| Brand 500 | `--color-brand-500` | #3B82F6 |
+| Neutral 950 | `--color-neutral-950` | #171717 |
+| Radius 08 | `--radius-08` | 8px |
+| Radius 08 Focus | `--radius-08-focus` | 10px |
+| Space 100 | `--space-100` | 8px |
+| Width 2 | `--border-width-2` | 2px |
 
-I define eight series:
+### Semantic Examples
 
-* **Data 1**: `--color-data-1`
-* **Data 2**: `--color-data-2`
-* **Data 3**: `--color-data-3`
-* **Data 4**: `--color-data-4`
-* **Data 5**: `--color-data-5`
-* **Data 6**: `--color-data-6`
-* **Data 7**: `--color-data-7`
-* **Data 8**: `--color-data-8`
+| Designer Name | CSS Variable | Purpose |
+| --- | --- | --- |
+| Background Weak | `--color-background-weak` | Card or sidebar background |
+| Text Strongest | `--color-text-strongest` | High-contrast headings |
+| Border Subtle | `--color-border-subtle` | Dividers and separators |
+| Icon Muted | `--color-icon-muted` | Decorative or disabled icons |
+| Background Primary | `--color-background-primary` | Main CTA background |
+| Background Primary Hover | `--color-background-primary-hover` | Button hover state |
 
-### States
+### Common Mistakes & Corrected Versions
 
-* **Data 1 Hover Weakest**: `--color-data-1-hover-weakest`
-* **Data 1 Selected Strong**: `--color-data-1-selected-strong`
-* **Data 1 Muted Weaker**: `--color-data-1-muted-weaker`
-
-Accessibility:
-
-* I never rely on color alone
-* I ensure contrast against chart backgrounds
-* I recommend patterns or markers when needed
-
----
-
-## Theming and Scalability
-
-Semantic tokens enable theme switching.
-
-Example:
-
-* **Background Surface**: `--color-background-surface`
-
-  * Light mode maps to `--neutral-50`
-  * Dark mode maps to `--neutral-900`
-
-Rules:
-
-* I never rename existing tokens
-* I add new tokens when needed
-* I deprecate slowly and document changes
+| Incorrect Variable | Corrected Variable | Reason |
+| --- | --- | --- |
+| `--color-text-default` | `--color-text` | "Default" suffix is prohibited. |
+| `--color-red-500` | `--color-background-danger` | Variables must be semantic. |
+| `--BackgroundPrimary` | `--color-background-primary` | Kebab-case is required. |
+| `--text-2` | `--text-weak` | Intensity names are required over numbers. |
 
 ---
 
-## Accessibility
+## 11. Best Practices
 
-Contrast rules:
+* **Suffix Exclusion:** Never use the `-default` suffix; the base token represents the standard value.
+* **Aliasing Hierarchy:** Semantic tokens must alias Primitives. Raw values (hex/px) are prohibited in the Semantic layer.
+* **Intensity Logic:** Every hover state should shift one step toward higher contrast (e.g., `base` to `strong`).
+* **Focus Outline:** Use `box-shadow` or `outline` for focus rings; never modify `border-color` alone.
+* **Contrast Compliance:** All `Text` and `Icon` tokens must be validated against their respective `Background` tokens for WCAG accessibility.
+* **Semantic over Visual:** Select tokens based on their function in the interface, not their current color.
 
-* Text vs background meets WCAG requirements
-* Icons and borders remain perceivable
+## 12. Implementation Guide
 
-Focus checklist:
-
-* Focus ring visible on all surfaces
-* Focus does not rely on color alone
-* Focus uses dedicated tokens
-
-Testing checklist:
-
-* All states tested
-* Light and dark mode tested
-* Keyboard navigation tested
-* Charts tested for color blindness
+1. **Figma Setup:** Use the Tokens Studio plugin to define the "Primitive" and "Semantic" sets.
+2. **Variable Transformation:** Utilize a tool like Style Dictionary to transform JSON tokens into CSS/SCSS variables.
+3. **Theming:** Create separate files or blocks for Light and Dark modes, re-defining only the Semantic mappings.
+4. **Handoff:** Ensure all design files use the "Designer Name" while the exported code uses the "CSS Variable."
 
 ---
 
-## Best Practices
+*End of Documentation*
 
-* I never use raw values in components
-* I always go through semantic tokens
-* I keep naming order consistent
-* I avoid unnecessary roles
-* I shorten scales intentionally
-* I treat focus as a system, not a state
-* I document every new token
-* I prefer meaning over appearance
-* I keep primitives stable
-* I keep semantics expressive
-* I test before adding tokens
-* I review tokens regularly
-
----
-
-## Next Steps
-
-1. Create two token sets in Figma Tokens:
-
-   * Primitives
-   * Semantic
-
-2. Alias semantic tokens to primitives
-
-3. Create theme variants by remapping semantic tokens
-
-4. Export as CSS variables
-
-5. Validate naming, ordering, and completeness
-
-This file is the final reference for implementing and maintaining the design token system.
+Would you like me to generate a sample JSON structure for these tokens to use in Figma Tokens or Style Dictionary?
